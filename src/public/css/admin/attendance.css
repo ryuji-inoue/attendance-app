@@ -1,0 +1,39 @@
+.attendance-list__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+.attendance-list__nav {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-left: 140px; /* ボタンの幅分をオフセットして中央付近に寄せる */
+}
+.attendance-list__export-link {
+    background-color: #fff;
+    color: #333;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+.attendance-list__export-link:hover {
+    background-color: #f8f8f8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.attendance-list__detail-link {
+    color: #000;
+    text-decoration: none;
+    font-weight: bold;
+}
+.attendance-list__empty {
+    text-align: center;
+    color: #999;
+    padding: 40px;
+}

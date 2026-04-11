@@ -1,0 +1,93 @@
+:root {
+    --primary-color: #000000;
+    --bg-color: #F4F4F4;
+    --card-bg: #FFFFFF;
+    --text-color: #333333;
+    --error-color: #FF4D4D;
+    --border-color: #E0E0E0;
+    --font-family: 'Inter', 'Noto Sans JP', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Header */
+.header {
+    background-color: #000000;
+    color: #FFFFFF;
+    padding: 0 40px;
+    height: 70px; /* 画像に合わせて少し高く */
+}
+
+.header__inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px; /* 少し広めに */
+    margin: 0 auto;
+    height: 100%;
+}
+
+.header__logo a {
+    color: #FFFFFF;
+    text-decoration: none;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header__logo-ct {
+    font-size: 32px;
+}
+
+.header__logo-text {
+    font-size: 24px;
+    letter-spacing: 2px;
+}
+
+.header__nav-list {
+    display: flex;
+    list-style: none;
+    gap: 40px;
+}
+
+.header__nav-link {
+    color: #FFFFFF;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Main */
+.main {
+    padding: 80px 20px;
+}
+
+.main__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Page Title with Bar */
+.section-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 50px;
+    padding-left: 15px;
+    border-left: 6px solid #000000;
+    line-height: 1.2;
+}

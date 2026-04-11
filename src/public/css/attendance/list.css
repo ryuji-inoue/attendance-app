@@ -1,0 +1,72 @@
+.attendance-list__header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 40px;
+}
+.attendance-list__nav {
+    background-color: #fff;
+    padding: 10px 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.attendance-list__month-link {
+    text-decoration: none;
+    color: #0066FF;
+    font-size: 14px;
+    font-weight: bold;
+}
+.attendance-list__current-month {
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.attendance-list__calendar-icon {
+    font-size: 16px;
+}
+.attendance-list__table-container {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.attendance-list__table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.attendance-list__table th,
+.attendance-list__table td {
+    padding: 18px 15px;
+    text-align: left;
+    border-bottom: 1px solid #EEEEEE;
+}
+.attendance-list__table th {
+    font-weight: bold;
+    color: #333;
+    font-size: 15px;
+}
+.attendance-list__table td {
+    font-size: 15px;
+}
+.attendance-list__detail-link {
+    color: #000;
+    text-decoration: none;
+    font-weight: bold;
+}
+.attendance-list__detail-link:hover {
+    text-decoration: underline;
+}
+
+/* Success Message */
+.attendance-list__alert {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}

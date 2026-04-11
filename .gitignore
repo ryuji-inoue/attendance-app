@@ -1,0 +1,17 @@
+# Laravel
+src/.env
+src/.env.backup
+src/.env.production
+src/vendor/
+src/node_modules/
+src/public/storage/
+src/public/build/
+src/public/hot/
+src/storage/*.key
+src/.phpunit.result.cache
+src/.phpunit.cache/
+
+# Docker
+docker/mysql/data/
+.DS_Store
+*.log

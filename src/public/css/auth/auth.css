@@ -1,0 +1,102 @@
+/* Auth Pages (Login/Register) */
+.auth-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 50px;
+}
+
+.auth-page__title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 60px;
+}
+
+.auth-form {
+    width: 100%;
+    max-width: 500px;
+}
+
+.auth-form__group {
+    margin-bottom: 35px;
+}
+
+.auth-form__label {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.auth-form__input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #000;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.auth-form__button {
+    width: 100%;
+    padding: 15px;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.auth-page__link-group {
+    margin-top: 25px;
+}
+
+.auth-page__link {
+    color: #0066FF;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+/* Error message style */
+.form__error {
+    color: #FF4D4D;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* Verify Email specific */
+.verify-email {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 15vh;
+    text-align: center;
+}
+.verify-email__text {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1.8;
+    margin-bottom: 40px;
+}
+.verify-email__button {
+    background-color: #D9D9D9;
+    color: #000;
+    padding: 15px 40px;
+    border: 1px solid #999;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 30px;
+}
+.verify-email__resend {
+    color: #0066FF;
+    text-decoration: none;
+    font-size: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
