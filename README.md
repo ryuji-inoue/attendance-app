@@ -63,6 +63,7 @@ cp "docs/COACHTECHヘッダーロゴ.png" src/storage/app/public/images/logo.png
 - CSS
 
 ## ER図
+```mermaid
 erDiagram
     users ||--o{ attendances : "1:多 (user_id)"
     users ||--o{ attendance_correction_requests : "1:多 (user_id)"
@@ -128,6 +129,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
+```
 
 ## 各種テストの実行方法
 
