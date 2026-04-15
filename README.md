@@ -60,30 +60,10 @@ cp "docs/COACHTECHヘッダーロゴ.png" src/storage/app/public/images/logo.png
 - Laravel 10
 - MySQL 8.0
 - Fortify (認証基盤)
-- CSS (Vanilla CSS / プレミアムデザイン)
+- CSS
 
 ## ER図
 erDiagram
-    users ||--o{ attendances : "1:多 (user_id)"
-    users ||--o{ attendance_correction_requests : "1:多 (user_id)"
-    users ||--o{ attendance_correction_requests : "1:多 承認者 (approved_by)"
-    
-    attendances ||--o{ breaks : "1:多 (attendance_id)"
-    attendances ||--o{ attendance_correction_requests : "1:多 (attendance_id)"
-    
-    attendance_correction_requests ||--o{ correction_breaks : "1:多 (correction_id)"
-
-    users {
-        bigint unsigned id PK
-        string name
-        string email
-        string password
-        string role "user, admin"
-        timestamp email_verified_at
-        string remember_token
-        timestamp created_at
-        timestamp updated_at
-    }erDiagram
     users ||--o{ attendances : "1:多 (user_id)"
     users ||--o{ attendance_correction_requests : "1:多 (user_id)"
     users ||--o{ attendance_correction_requests : "1:多 承認者 (approved_by)"
@@ -180,7 +160,7 @@ php artisan test
 ・機能要件とテストケースを突合して、不足していると感じたテストケースを追加。
     (AdditionalRequirementTest.phpの11項目として実装)
 
-# 完全に抜け落ちているテストケース
+### 完全に抜け落ちているテストケース
     機能要件には存在するが、テストケースに記載がない項目。
 
     ・FN004 / FN010：認証画面間の遷移
@@ -215,7 +195,7 @@ php artisan test
         スタッフの月次勤怠画面で「CSV出力」ボタンを押下した際、選択した月の勤怠情報がCSVファイルとして正常にダウンロードされるか。
 
 
-# 要件に対してテストの網羅性が不足している項目
+### 要件に対してテストの網羅性が不足している項目
     機能要件（FN）で定義されている条件に対して、テストケース側の検証パターンが足りていない項目。
 
     ・FN029-1 / FN039-1：出退勤の時間の矛盾
@@ -224,7 +204,7 @@ php artisan test
         現在のテスト（ID11/ID13）：出勤時間を退勤時間より後にする場合のみテストしている。
         追加テスト： 退勤時間を出勤時間より前に設定した場合もエラーになるか。
 
-    FN029-2 / FN039-2：休憩開始時間の矛盾
+    ・N029-2 / FN039-2：休憩開始時間の矛盾
         要件：「休憩開始時間が出勤時間より前」または「退勤時間より後」
 
         現在のテスト（ID11/ID13）：退勤時間より後に設定した場合のみテストしている。
