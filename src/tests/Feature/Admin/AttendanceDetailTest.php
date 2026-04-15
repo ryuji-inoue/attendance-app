@@ -13,32 +13,36 @@ class AttendanceDetailTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * 勤怠詳細画面に表示されるデータが、選択したものと一致していることの確認
+     * 勤怠詳細画面に表示されるデータが選択したものになっていることの確認
      */
     public function test_admin_can_see_correct_attendance_detail()
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create(['name' => '対象ユーザー']);
-        $attendance = Attendance::factory()->create(['user_id' => $user->id, 'date' => '2024-04-01']);
-        $this->actingAs($admin);
+        $attendance = Attendance::factory()->create([
+            'user_id' => $user->id,
+            'date' => '2024-04-01'
+        ]);
 
+        $this->actingAs($admin);
         $response = $this->get('/attendance/detail/' . $attendance->id);
 
         $response->assertStatus(200);
         $response->assertSee('対象ユーザー');
-        $response->assertSeeInOrder(['2024年', '4月1日']);
+        $response->assertSee('2024年');
+        $response->assertSee('4月1日');
     }
 
     /**
-     * 出勤時間が退勤時間より後になっている場合、管理者用のエラーメッセージが表示されることの確認
+     * 出勤時間が退勤時間より後になっている場合、エラーメッセージが表示されることの確認
      */
     public function test_admin_validation_clock_in_after_clock_out()
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create();
         $attendance = Attendance::factory()->create(['user_id' => $user->id]);
-        $this->actingAs($admin);
 
+        $this->actingAs($admin);
         $response = $this->post('/attendance/detail/' . $attendance->id, [
             'clock_in' => '19:00',
             'clock_out' => '18:00',
@@ -49,15 +53,59 @@ class AttendanceDetailTest extends TestCase
     }
 
     /**
-     * 備考欄が未入力の場合、エラーメッセージが表示されることの確認
+     * 休憩開始時間が退勤時間より後になっている場合、エラーメッセージが表示されることの確認
+     */
+    public function test_admin_validation_break_start_after_clock_out()
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create();
+        $attendance = Attendance::factory()->create(['user_id' => $user->id]);
+
+        $this->actingAs($admin);
+        $response = $this->post('/attendance/detail/' . $attendance->id, [
+            'clock_in' => '09:00',
+            'clock_out' => '18:00',
+            'note' => '修正理由',
+            'breaks' => [
+                ['start' => '18:30', 'end' => '19:00'] // 退勤(18:00)より後に開始
+            ]
+        ]);
+
+        $response->assertSessionHasErrors(['breaks.0.start' => '休憩時間が不適切な値です']);
+    }
+
+    /**
+     * 休憩終了時間が退勤時間より後になっている場合、エラーメッセージが表示されることの確認
+     */
+    public function test_admin_validation_break_end_after_clock_out()
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $user = User::factory()->create();
+        $attendance = Attendance::factory()->create(['user_id' => $user->id]);
+
+        $this->actingAs($admin);
+        $response = $this->post('/attendance/detail/' . $attendance->id, [
+            'clock_in' => '09:00',
+            'clock_out' => '18:00',
+            'note' => '修正理由',
+            'breaks' => [
+                ['start' => '12:00', 'end' => '19:00'] // 退勤(18:00)より後に終了
+            ]
+        ]);
+
+        $response->assertSessionHasErrors(['breaks.0.end' => '休憩時間もしくは退勤時間が不適切な値です']);
+    }
+
+    /**
+     * 備考欄が未入力の場合のエラーメッセージが表示されることの確認
      */
     public function test_admin_validation_note_is_required()
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $user = User::factory()->create();
         $attendance = Attendance::factory()->create(['user_id' => $user->id]);
-        $this->actingAs($admin);
 
+        $this->actingAs($admin);
         $response = $this->post('/attendance/detail/' . $attendance->id, [
             'clock_in' => '09:00',
             'clock_out' => '18:00',

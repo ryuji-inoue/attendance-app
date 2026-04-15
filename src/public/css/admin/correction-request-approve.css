@@ -23,41 +23,13 @@
     font-size: 14px;
     color: #000;
 }
-.attendance-detail__user-name,
-.attendance-detail__date-text,
-.attendance-detail__text {
-    font-weight: 700;
-    font-size: 14px;
-}
-.attendance-detail__date-item {
-    margin-left: 40px;
-}
-.attendance-detail__text-note {
-    font-weight: 500;
-    font-size: 14px;
-}
-.attendance-detail__input {
-    padding: 6px 0;
-    border: 1px solid #D9D9D9;
-    border-radius: 4px;
+.attendance-detail__value {
     font-size: 14px;
     font-weight: 700;
-    width: 100px;
-    text-align: center;
 }
 .attendance-detail__tilde {
     margin: 0 30px;
     font-weight: 500;
-}
-.attendance-detail__note {
-    width: 90%;
-    padding: 12px;
-    border: 1px solid #D9D9D9;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 700;
-    resize: vertical;
-    min-height: 60px;
 }
 .attendance-detail__footer {
     display: flex;
@@ -83,22 +55,9 @@
     color: #fff;
     cursor: default;
 }
-.attendance-detail__pending-msg {
-    color: #FF0000;
-    font-size: 13px;
-    font-weight: 500;
-    text-align: right;
-    margin-top: 10px;
+.attendance-detail__date-item {
+    margin-left: 40px;
 }
-.attendance-detail__alert {
-    color: #FF0000;
-    font-size: 13px;
-    font-weight: 500;
-    text-align: right;
-    margin-bottom: 10px;
-}
-.error-message {
-    color: #FF0000;
-    font-size: 12px;
-    margin-top: 4px;
+.attendance-detail__table tr.attendance-detail__row--no-border {
+    border-bottom: none;
 }

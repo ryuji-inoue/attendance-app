@@ -18,6 +18,7 @@ class UserSeeder extends Seeder
             'email' => 'user@example.com',
             'password' => Hash::make('password'),
             'role' => 'user',
+            'email_verified_at' => now(),
         ]);
 
         // 追加のテストユーザーが必要な場合はここでファクトリ等を使用可能

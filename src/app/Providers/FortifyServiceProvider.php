@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Fortify;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -23,12 +25,27 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // メール認証メールの日本語化
+        VerifyEmail::toMailUsing(function ($notifiable, $url) {
+            return (new MailMessage)
+                ->subject('メールアドレスの確認')
+                ->line('下のボタンをクリックして、メールアドレスを確認してください。')
+                ->action('メールアドレスを確認する', $url)
+                ->line('もしアカウント作成に心当たりがない場合は、このメールを破棄してください。');
+        });
+
         Fortify::createUsersUsing(CreateNewUser::class);
 
         // ログインレスポンスのカスタマイズ（管理者・一般ユーザーの遷移先分岐）
         $this->app->singleton(
             \Laravel\Fortify\Contracts\LoginResponse::class,
             \App\Http\Responses\LoginResponse::class
+        );
+
+        // ログアウトレスポンスのカスタマイズ
+        $this->app->singleton(
+            \Laravel\Fortify\Contracts\LogoutResponse::class,
+            \App\Http\Responses\LogoutResponse::class
         );
 
         // 会員登録画面のビュー指定

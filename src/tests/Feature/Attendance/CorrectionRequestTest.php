@@ -7,7 +7,6 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Attendance;
 use App\Models\AttendanceCorrectionRequest;
-use Carbon\Carbon;
 
 class CorrectionRequestTest extends TestCase
 {
@@ -44,9 +43,7 @@ class CorrectionRequestTest extends TestCase
             'clock_in' => '09:00',
             'clock_out' => '18:00',
             'note' => '修正理由',
-            'breaks' => [
-                ['start' => '18:30', 'end' => '19:00']
-            ]
+            'breaks' => [['start' => '18:30', 'end' => '19:00']]
         ]);
 
         $response->assertSessionHasErrors(['breaks.0.start' => '休憩時間が不適切な値です']);
@@ -65,16 +62,14 @@ class CorrectionRequestTest extends TestCase
             'clock_in' => '09:00',
             'clock_out' => '18:00',
             'note' => '修正理由',
-            'breaks' => [
-                ['start' => '12:00', 'end' => '19:00']
-            ]
+            'breaks' => [['start' => '12:00', 'end' => '19:00']]
         ]);
 
         $response->assertSessionHasErrors(['breaks.0.end' => '休憩時間もしくは退勤時間が不適切な値です']);
     }
 
     /**
-     * 備考欄が未入力の場合、エラーメッセージが表示されることの確認
+     * 備考欄が未入力の場合のエラーメッセージが表示されることの確認
      */
     public function test_validation_note_is_required()
     {
@@ -92,22 +87,81 @@ class CorrectionRequestTest extends TestCase
     }
 
     /**
-     * 修正申請一覧において、自分の申請が正しく表示されることの確認
+     * 修正申請処理が実行されることの確認（管理者画面での確認準備）
      */
-    public function test_user_can_see_own_correction_requests()
+    public function test_correction_request_is_stored_correctly()
     {
         $user = User::factory()->create();
         $attendance = Attendance::factory()->create(['user_id' => $user->id]);
-        AttendanceCorrectionRequest::factory()->create([
-            'attendance_id' => $attendance->id,
+        $this->actingAs($user);
+
+        $this->post('/attendance/detail/' . $attendance->id, [
+            'clock_in' => '09:00',
+            'clock_out' => '18:00',
+            'note' => '修正します',
+        ]);
+
+        $this->assertDatabaseHas('attendance_correction_requests', [
             'user_id' => $user->id,
+            'attendance_id' => $attendance->id,
+            'status' => 'pending', // 承認待ち状態
+        ]);
+    }
+
+    /**
+     * 「承認待ち」にログインユーザーが行った申請が全て表示されていることの確認
+     */
+    public function test_user_can_see_own_pending_requests()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        AttendanceCorrectionRequest::factory()->count(2)->create([
+            'user_id' => $user->id,
+            'status' => 'pending'
+        ]);
+
+        $response = $this->get('/stamp_correction_request/list?status=pending');
+
+        $response->assertStatus(200);
+        $this->assertCount(2, $response->viewData('requests'));
+    }
+
+    /**
+     * 「承認済み」に管理者が承認した修正申請が全て表示されていることの確認
+     */
+    public function test_user_can_see_own_approved_requests()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        AttendanceCorrectionRequest::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'approved'
+        ]);
+
+        $response = $this->get('/stamp_correction_request/list?status=approved');
+
+        $response->assertSee('承認済み');
+        $this->assertCount(1, $response->viewData('requests'));
+    }
+
+    /**
+     * 各申請の「詳細」を押下すると勤怠詳細画面に遷移することの確認
+     */
+    public function test_correction_request_detail_link_works()
+    {
+        $user = User::factory()->create();
+        $attendance = Attendance::factory()->create(['user_id' => $user->id]);
+        $request = AttendanceCorrectionRequest::factory()->create([
+            'user_id' => $user->id,
+            'attendance_id' => $attendance->id
         ]);
 
         $this->actingAs($user);
-
         $response = $this->get('/stamp_correction_request/list');
 
-        $response->assertStatus(200);
-        $this->assertCount(1, $response->viewData('requests'));
+        // 詳細画面へのリンクが存在するか
+        $response->assertSee('/attendance/detail/' . $attendance->id);
     }
 }

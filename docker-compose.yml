@@ -8,11 +8,15 @@ services:
       - ./src:/var/www/
     depends_on:
       - php
+      - mailpit
 
   php:
     build: ./docker/php
     volumes:
       - ./src:/var/www/
+    depends_on:
+      - mysql
+      - mailpit
 
   mysql:
     image: mysql:8.0.26
@@ -38,8 +42,8 @@ services:
     ports:
       - 8080:80
 
-  mailhog:
+  mailpit:
     image: mailhog/mailhog
     ports:
-      - "8025:8025"
-      - "1025:1025"
+        - "8025:8025"
+        - "1025:1025"

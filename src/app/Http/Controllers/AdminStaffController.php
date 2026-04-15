@@ -30,33 +30,13 @@ class AdminStaffController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
-        // 勤怠計算ロジック（AttendanceController@listと同様）
-        foreach ($attendances as $attendance) {
-            $totalBreakMinutes = 0;
-            foreach ($attendance->breaks as $break) {
-                if ($break->break_start && $break->break_end) {
-                    $start = Carbon::parse($break->break_start);
-                    $end = Carbon::parse($break->break_end);
-                    $totalBreakMinutes += $end->diffInMinutes($start);
-                }
-            }
-            $attendance->total_break = sprintf('%d:%02d', intdiv($totalBreakMinutes, 60), $totalBreakMinutes % 60);
-
-            if ($attendance->clock_in && $attendance->clock_out) {
-                $in = Carbon::parse($attendance->clock_in);
-                $out = Carbon::parse($attendance->clock_out);
-                $workingMinutes = $out->diffInMinutes($in) - $totalBreakMinutes;
-                $attendance->total_working = sprintf('%d:%02d', intdiv($workingMinutes, 60), $workingMinutes % 60);
-            } else {
-                $attendance->total_working = '';
-            }
-        }
 
         $prevMonth = $date->copy()->subMonth()->format('Y-m');
         $nextMonth = $date->copy()->addMonth()->format('Y-m');
         $currentMonthDisplay = $date->format('Y/m');
+        $exportMonth = $month; // BladeのCSV出力リンク用
 
-        return view('admin.staff.attendance', compact('user', 'attendances', 'currentMonthDisplay', 'prevMonth', 'nextMonth'));
+        return view('admin.staff.attendance', compact('user', 'attendances', 'currentMonthDisplay', 'prevMonth', 'nextMonth', 'exportMonth'));
     }
 
     // 管理者：スタッフ別勤怠CSV出力
@@ -82,28 +62,12 @@ class AdminStaffController extends Controller
             fputcsv($file, ['日付', '出勤', '退勤', '休憩時間', '合計勤務時間']);
 
             foreach ($attendances as $attendance) {
-                // 休憩時間計算
-                $totalBreakMinutes = 0;
-                foreach ($attendance->breaks as $break) {
-                    if ($break->break_start && $break->break_end) {
-                        $totalBreakMinutes += Carbon::parse($break->break_end)->diffInMinutes(Carbon::parse($break->break_start));
-                    }
-                }
-                $totalBreak = sprintf('%d:%02d', intdiv($totalBreakMinutes, 60), $totalBreakMinutes % 60);
-
-                // 勤務時間計算
-                $totalWorking = '';
-                if ($attendance->clock_in && $attendance->clock_out) {
-                    $workingMinutes = Carbon::parse($attendance->clock_out)->diffInMinutes(Carbon::parse($attendance->clock_in)) - $totalBreakMinutes;
-                    $totalWorking = sprintf('%d:%02d', intdiv($workingMinutes, 60), $workingMinutes % 60);
-                }
-
                 fputcsv($file, [
-                    Carbon::parse($attendance->date)->isoFormat('YYYY/MM/DD(ddd)'),
-                    $attendance->clock_in ? Carbon::parse($attendance->clock_in)->format('H:i') : '',
-                    $attendance->clock_out ? Carbon::parse($attendance->clock_out)->format('H:i') : '',
-                    $totalBreak,
-                    $totalWorking
+                    Carbon::parse($attendance->date)->isoFormat('YYYY/MM/DD(ddd)'), // CSV用の年入り日付
+                    $attendance->formatted_clock_in,
+                    $attendance->formatted_clock_out,
+                    $attendance->total_break,
+                    $attendance->total_working
                 ]);
             }
             fclose($file);

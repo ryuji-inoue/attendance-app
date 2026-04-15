@@ -33,27 +33,18 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1400px; /* 少し広めに */
-    margin: 0 auto;
     height: 100%;
 }
 
 .header__logo a {
-    color: #FFFFFF;
-    text-decoration: none;
-    font-weight: bold;
     display: flex;
     align-items: center;
-    gap: 8px;
 }
 
-.header__logo-ct {
-    font-size: 32px;
-}
-
-.header__logo-text {
-    font-size: 24px;
-    letter-spacing: 2px;
+.header__logo-img {
+    height: 40px; /* ヘッダーの高さに合わせて調整 */
+    width: auto;
+    display: block;
 }
 
 .header__nav-list {

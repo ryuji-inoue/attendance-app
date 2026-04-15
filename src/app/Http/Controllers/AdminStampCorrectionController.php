@@ -14,7 +14,7 @@ class AdminStampCorrectionController extends Controller
     public function list(Request $request)
     {
         $status = $request->query('status', 'pending');
-        
+
         $requests = AttendanceCorrectionRequest::where('status', $status)
             ->with(['user', 'attendance'])
             ->latest()

@@ -25,9 +25,13 @@ class ClockOutTest extends TestCase
             'status' => '出勤中',
         ]);
 
+        $this->get('/attendance')->assertSee('退勤');
+
         $response = $this->post('/attendance/clock-out');
 
         $response->assertRedirect('/attendance');
+        $this->get('/attendance')->assertSee('退勤済');
+
         $this->assertDatabaseHas('attendances', [
             'user_id' => $user->id,
             'status' => '退勤済',
@@ -41,13 +45,10 @@ class ClockOutTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        
-        Attendance::factory()->create([
-            'user_id' => $user->id,
-            'status' => '出勤中',
-        ]);
 
         $now = Carbon::now();
+
+        $this->post('/attendance/clock-in');
         $this->post('/attendance/clock-out');
 
         $response = $this->get('/attendance/list');

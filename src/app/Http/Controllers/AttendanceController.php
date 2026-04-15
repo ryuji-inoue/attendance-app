@@ -18,17 +18,21 @@ class AttendanceController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $today = Carbon::today();
-        
+        $now = Carbon::now();
+
         // 本日の最新の勤怠レコードを取得
         $attendance = Attendance::where('user_id', $user->id)
-                                ->where('date', $today)
-                                ->latest()
-                                ->first();
+            ->where('date', $now->toDateString())
+            ->latest()
+            ->first();
 
         $status = $attendance ? $attendance->status : '勤務外';
 
-        return view('attendance.index', compact('attendance', 'status'));
+        // 表示用の日付と時刻をコントローラーで準備
+        $currentDate = $now->isoFormat('YYYY年M月D日(ddd)');
+        $currentTime = $now->format('H:i');
+
+        return view('attendance.index', compact('attendance', 'status', 'currentDate', 'currentTime'));
     }
 
     // 出勤処理
@@ -37,10 +41,10 @@ class AttendanceController extends Controller
         $user = Auth::user();
         $now = Carbon::now();
 
-        // 1日に1回だけ押下できる (FN020.2)
+        // 1日に1回だけ押下できる
         $exists = Attendance::where('user_id', $user->id)
-                            ->where('date', $now->toDateString())
-                            ->exists();
+            ->where('date', $now->toDateString())
+            ->exists();
 
         if ($exists) {
             return redirect('/attendance')->with('error', '本日は既に出勤済みです。');
@@ -61,9 +65,9 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
         $attendance = Attendance::where('user_id', $user->id)
-                                ->where('status', '出勤中')
-                                ->latest()
-                                ->first();
+            ->where('status', '出勤中')
+            ->latest()
+            ->first();
 
         if ($attendance) {
             $attendance->update([
@@ -80,9 +84,9 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
         $attendance = Attendance::where('user_id', $user->id)
-                                ->where('status', '出勤中')
-                                ->latest()
-                                ->first();
+            ->where('status', '出勤中')
+            ->latest()
+            ->first();
 
         if ($attendance) {
             BreakTime::create([
@@ -101,15 +105,15 @@ class AttendanceController extends Controller
     {
         $user = Auth::user();
         $attendance = Attendance::where('user_id', $user->id)
-                                ->where('status', '休憩中')
-                                ->latest()
-                                ->first();
+            ->where('status', '休憩中')
+            ->latest()
+            ->first();
 
         if ($attendance) {
             $break = BreakTime::where('attendance_id', $attendance->id)
-                              ->whereNull('break_end')
-                              ->latest()
-                              ->first();
+                ->whereNull('break_end')
+                ->latest()
+                ->first();
 
             if ($break) {
                 $break->update([
@@ -137,29 +141,6 @@ class AttendanceController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
-        // 各レコードの合計休憩時間と勤務時間を計算
-        foreach ($attendances as $attendance) {
-            $totalBreakMinutes = 0;
-            foreach ($attendance->breaks as $break) {
-                if ($break->break_start && $break->break_end) {
-                    $start = Carbon::parse($break->break_start);
-                    $end = Carbon::parse($break->break_end);
-                    $totalBreakMinutes += $end->diffInMinutes($start);
-                }
-            }
-            
-            $attendance->total_break = sprintf('%d:%02d', intdiv($totalBreakMinutes, 60), $totalBreakMinutes % 60);
-
-            if ($attendance->clock_in && $attendance->clock_out) {
-                $in = Carbon::parse($attendance->clock_in);
-                $out = Carbon::parse($attendance->clock_out);
-                $workingMinutes = $out->diffInMinutes($in) - $totalBreakMinutes;
-                $attendance->total_working = sprintf('%d:%02d', intdiv($workingMinutes, 60), $workingMinutes % 60);
-            } else {
-                $attendance->total_working = '';
-            }
-        }
-
         $prevMonth = $date->copy()->subMonth()->format('Y-m');
         $nextMonth = $date->copy()->addMonth()->format('Y-m');
         $currentMonthDisplay = $date->format('Y/m');
@@ -170,17 +151,62 @@ class AttendanceController extends Controller
     // 勤怠詳細表示
     public function detail($id)
     {
-        $attendance = Attendance::with(['breaks', 'user'])->findOrFail($id);
-        
-        // ログインユーザー本人のものかチェック
+        $attendance = Attendance::with(['breaks', 'user', 'correctionRequests.breaks'])->findOrFail($id);
+
+        // 権限チェック
         if (Auth::user()->role !== 'admin' && $attendance->user_id !== Auth::id()) {
             abort(403);
         }
 
-        // 承認待ちの申請があるかチェック
-        $isPending = $attendance->correctionRequests()->where('status', 'pending')->exists();
+        // 承認待ちの申請を取得
+        $pendingRequest = $attendance->correctionRequests->where('status', 'pending')->first();
+        $isPending = (bool) $pendingRequest;
+        $canEdit = Auth::user()->role === 'admin' || !$isPending;
 
-        return view('attendance.detail', compact('attendance', 'isPending'));
+        // ベースとなるデータの判定
+        $baseClockIn = $isPending ? $pendingRequest->clock_in : $attendance->clock_in;
+        $baseClockOut = $isPending ? $pendingRequest->clock_out : $attendance->clock_out;
+        $baseNote = $isPending ? $pendingRequest->note : $attendance->note;
+
+        // 1. 出退勤と備考のデータを準備 (すでにH:iフォーマット済み)
+        $displayData = [
+            'clock_in' => $this->formatTime(old('clock_in', $baseClockIn)),
+            'clock_out' => $this->formatTime(old('clock_out', $baseClockOut)),
+            'note' => old('note', $baseNote),
+            'breaks' => []
+        ];
+
+        // 2. 休憩データの準備（バリデーションエラー時の old を優先）
+        $oldBreaks = old('breaks');
+        if ($oldBreaks !== null) {
+            // エラーで戻ってきた場合は、入力された値をそのまま使う
+            foreach ($oldBreaks as $break) {
+                $displayData['breaks'][] = [
+                    'start' => $break['start'] ?? '',
+                    'end' => $break['end'] ?? '',
+                ];
+            }
+        } else {
+            // 通常時はDBの値をフォーマットして使う
+            $sourceBreaks = $isPending ? $pendingRequest->breaks : $attendance->breaks;
+            foreach ($sourceBreaks as $break) {
+                $displayData['breaks'][] = [
+                    'start' => $this->formatTime($break->break_start),
+                    'end' => $this->formatTime($break->break_end),
+                ];
+            }
+        }
+
+        // 3. 休憩行の表示数を調整
+        if ($canEdit) {
+            // 編集モードなら、新しく追加するための「空行」を末尾に1つ足す
+            $displayData['breaks'][] = ['start' => '', 'end' => ''];
+        } elseif (count($displayData['breaks']) === 0) {
+            // 閲覧モードで休憩が0回の場合でも、表示崩れを防ぐために空行を1つ用意
+            $displayData['breaks'][] = ['start' => '', 'end' => ''];
+        }
+
+        return view('attendance.detail', compact('attendance', 'isPending', 'displayData', 'canEdit', 'pendingRequest'));
     }
 
     // 修正申請の提出
@@ -188,24 +214,25 @@ class AttendanceController extends Controller
     {
         $attendance = Attendance::findOrFail($id);
         $isAdmin = Auth::user()->role === 'admin';
-        
+
         $validated = $request->validated();
 
         if ($isAdmin) {
-            DB::transaction(function () use ($attendance, $request) {
+            DB::transaction(function () use ($attendance, $validated) {
                 // 勤怠本体の直接更新
                 $attendance->update([
-                    'clock_in' => $request->clock_in,
-                    'clock_out' => $request->clock_out,
-                    'note' => $request->note,
+                    'clock_in' => $validated['clock_in'],
+                    'clock_out' => $validated['clock_out'],
+                    'note' => $validated['note'],
                     'status' => '退勤済',
                 ]);
 
                 // 休憩時間の直接更新（一度削除して再作成）
                 BreakTime::where('attendance_id', $attendance->id)->delete();
-                if ($request->has('breaks')) {
-                    foreach ($request->breaks as $breakData) {
-                        if ($breakData['start'] && $breakData['end']) {
+                if (isset($validated['breaks'])) {
+                    foreach ($validated['breaks'] as $breakData) {
+                        // 開始・終了どちらも入力されている場合のみ保存
+                        if (!empty($breakData['start']) && !empty($breakData['end'])) {
                             BreakTime::create([
                                 'attendance_id' => $attendance->id,
                                 'break_start' => $breakData['start'],
@@ -216,22 +243,22 @@ class AttendanceController extends Controller
                 }
             });
 
-            return redirect('/admin/attendance/list')->with('success', '勤怠情報を修正しました。');
+            return back()->with('success', '勤怠情報を修正しました。');
         } else {
             // 一般ユーザー：修正申請レコードの作成
             $correction = AttendanceCorrectionRequest::create([
                 'attendance_id' => $attendance->id,
                 'user_id' => Auth::id(),
                 'status' => 'pending',
-                'clock_in' => $request->clock_in,
-                'clock_out' => $request->clock_out,
-                'note' => $request->note,
+                'clock_in' => $validated['clock_in'],
+                'clock_out' => $validated['clock_out'],
+                'note' => $validated['note'],
             ]);
 
             // 休憩時間の修正データ保存
-            if ($request->has('breaks')) {
-                foreach ($request->breaks as $breakData) {
-                    if ($breakData['start'] && $breakData['end']) {
+            if (isset($validated['breaks'])) {
+                foreach ($validated['breaks'] as $breakData) {
+                    if (!empty($breakData['start']) && !empty($breakData['end'])) {
                         CorrectionBreak::create([
                             'correction_id' => $correction->id,
                             'break_start' => $breakData['start'],
@@ -242,6 +269,18 @@ class AttendanceController extends Controller
             }
 
             return redirect('/attendance/list')->with('success', '修正申請を提出しました。');
+        }
+    }
+
+    // 時刻フォーマット用のプライベートメソッド
+    private function formatTime($time)
+    {
+        if (!$time)
+            return '';
+        try {
+            return \Carbon\Carbon::parse($time)->format('H:i');
+        } catch (\Exception $e) {
+            return $time; // 既にH:i形式になっている等の場合はそのまま返す
         }
     }
 }

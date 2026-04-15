@@ -14,10 +14,15 @@
     <header class="header">
         <div class="header__inner">
             <div class="header__logo">
-                <a href="/">
-                    <span class="header__logo-ct">CT</span>
-                    <span class="header__logo-text">COACHTECH</span>
-                </a>
+                @auth
+                    <a href="/">
+                        <img src="{{ asset('storage/images/logo.png') }}" alt="COACHTECH" class="header__logo-img">
+                    </a>
+                @else
+                    <span>
+                        <img src="{{ asset('storage/images/logo.png') }}" alt="COACHTECH" class="header__logo-img">
+                    </span>
+                @endauth
             </div>
             <nav class="header__nav">
                 <ul class="header__nav-list">
@@ -29,17 +34,17 @@
                         @else
                             <li><a href="/attendance" class="header__nav-link">勤怠</a></li>
                             <li><a href="/attendance/list" class="header__nav-link">勤怠一覧</a></li>
-                            <li><a href="/stamp_correction_request/list" class="header__nav-link">申請一覧</a></li>
+                            <li><a href="/stamp_correction_request/list" class="header__nav-link">申請</a></li>
                         @endif
                         <li>
                             <form action="/logout" method="POST">
                                 @csrf
+                                @if(Auth::user()->role === 'admin')
+                                    <input type="hidden" name="logout_redirect" value="/admin/login">
+                                @endif
                                 <button type="submit" class="header__nav-link">ログアウト</button>
                             </form>
                         </li>
-                    @else
-                        <li><a href="/login" class="header__nav-link">ログイン</a></li>
-                        <li><a href="/register" class="header__nav-link">会員登録</a></li>
                     @endauth
                 </ul>
             </nav>

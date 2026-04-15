@@ -8,12 +8,12 @@
 
 @section('content')
 <div class="auth-page">
-    <h1 class="auth-page__title">登録</h1>
+    <h1 class="auth-page__title">会員登録</h1>
 
     <form class="auth-form" action="/register" method="POST">
         @csrf
         <div class="auth-form__group">
-            <label class="auth-form__label" for="name">お名前</label>
+            <label class="auth-form__label" for="name">名前</label>
             <input class="auth-form__input" type="text" name="name" id="name" value="{{ old('name') }}">
             @error('name')
                 <p class="form__error">{{ $message }}</p>
@@ -37,7 +37,7 @@
         </div>
 
         <div class="auth-form__group">
-            <label class="auth-form__label" for="password_confirmation">確認用パスワード</label>
+            <label class="auth-form__label" for="password_confirmation">パスワード確認</label>
             <input class="auth-form__input" type="password" name="password_confirmation" id="password_confirmation">
         </div>
 

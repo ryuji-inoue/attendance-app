@@ -17,6 +17,9 @@ class BreakTime extends Model
         'break_end',
     ];
 
+    /**
+     * リレーション：この休憩が紐づく元の勤怠レコードを取得
+     */
     public function attendance()
     {
         return $this->belongsTo(Attendance::class);

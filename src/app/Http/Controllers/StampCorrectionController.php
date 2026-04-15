@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class StampCorrectionController extends Controller
 {
     /**
-     * 申請一覧 (PG06/PG12)
+     * 申請一覧
      */
     public function list(Request $request)
     {

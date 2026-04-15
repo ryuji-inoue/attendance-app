@@ -73,6 +73,21 @@ class RegisterTest extends TestCase
     }
 
     /**
+     * パスワードが未入力の場合、バリデーションメッセージが表示されることの確認
+     */
+    public function test_password_is_required()
+    {
+        $response = $this->post('/register', [
+            'name' => 'テスト会員',
+            'email' => 'test@example.com',
+            'password' => '',
+            'password_confirmation' => '',
+        ]);
+
+        $response->assertSessionHasErrors(['password' => 'パスワードを入力してください']);
+    }
+
+    /**
      * 正常に入力がなされた場合、ユーザー情報が保存され、認証メールが送信されることの確認
      */
     public function test_registration_success_and_sends_verification_email()

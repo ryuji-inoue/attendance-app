@@ -17,10 +17,10 @@ class LoginResponse implements LoginResponseContract
 
         // 管理者の場合の遷移先
         if ($user && $user->role === 'admin') {
-            return redirect()->intended('/admin/attendance/list');
+            return redirect('/admin/attendance/list');
         }
 
         // 一般ユーザーの場合の遷移先
-        return redirect()->intended('/attendance');
+        return redirect('/attendance');
     }
 }

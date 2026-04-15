@@ -22,7 +22,10 @@ class ClockInTest extends TestCase
 
         $response = $this->post('/attendance/clock-in');
 
+        // 押下後、リダイレクトして「出勤中」と表示されていることを確認
         $response->assertRedirect('/attendance');
+        $this->get('/attendance')->assertSee('出勤中');
+        
         $this->assertDatabaseHas('attendances', [
             'user_id' => $user->id,
             'status' => '出勤中',

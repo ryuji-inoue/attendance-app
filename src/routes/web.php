@@ -1,50 +1,71 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\StampCorrectionController;
+use App\Http\Controllers\AdminStampCorrectionController;
+use App\Http\Controllers\AdminStaffController;
+use App\Http\Controllers\AdminAttendanceController;
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
+| 勤怠管理システムのルーティング設定です。
 |
 */
 
+/**
+ * システム共通 / トップページ
+ */
 Route::get('/', function () {
     return redirect('/attendance');
-});
+})->name('top');
 
+
+/**
+ * 一般ユーザー機能 (認証・メール認証必須)
+ */
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/attendance', [App\Http\Controllers\AttendanceController::class, 'index']);
-    Route::post('/attendance/clock-in', [App\Http\Controllers\AttendanceController::class, 'clockIn']);
-    Route::post('/attendance/clock-out', [App\Http\Controllers\AttendanceController::class, 'clockOut']);
-    Route::post('/attendance/break-start', [App\Http\Controllers\AttendanceController::class, 'breakStart']);
-    Route::post('/attendance/break-end', [App\Http\Controllers\AttendanceController::class, 'breakEnd']);
     
-    Route::get('/attendance/list', [App\Http\Controllers\AttendanceController::class, 'list']);
-    Route::get('/attendance/detail/{id}', [App\Http\Controllers\AttendanceController::class, 'detail']);
-    Route::post('/attendance/detail/{id}', [App\Http\Controllers\AttendanceController::class, 'requestCorrection']);
+    // --- 勤怠打刻・ステータス管理 ---
+    Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('/attendance/clock-in', [AttendanceController::class, 'clockIn'])->name('attendance.clock-in');
+    Route::post('/attendance/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
+    Route::post('/attendance/break-start', [AttendanceController::class, 'breakStart'])->name('attendance.break-start');
+    Route::post('/attendance/break-end', [AttendanceController::class, 'breakEnd'])->name('attendance.break-end');
+    
+    // --- 勤怠履歴・詳細・修正申請 ---
+    Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
+    Route::get('/attendance/detail/{id}', [AttendanceController::class, 'detail'])->name('attendance.detail');
+    Route::post('/attendance/detail/{id}', [AttendanceController::class, 'requestCorrection'])->name('attendance.update');
 
-    // 共通申請一覧 (PG06/PG12)
-    Route::get('/stamp_correction_request/list', [App\Http\Controllers\StampCorrectionController::class, 'list']);
+    // --- 修正申請一覧 ---
+    Route::get('/stamp_correction_request/list', [StampCorrectionController::class, 'list'])->name('correction.list');
 });
 
+
+/**
+ * 管理者機能 (認証・管理者権限必須)
+ */
+// 管理者ログイン (独自ビューを使用)
 Route::get('/admin/login', function () {
     return view('admin.auth.login');
 })->name('admin.login')->middleware('guest');
-Route::post('/admin/login', [\Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::class, 'store'])->middleware('guest');
 
-// 管理者機能
+Route::post('/admin/login', [AuthenticatedSessionController::class, 'store'])->middleware('guest');
+
 Route::middleware(['auth', 'admin'])->group(function () {
-    // 承認画面はパス変更なし (PG13)
-    Route::get('/stamp_correction_request/approve/{attendance_correct_request_id}', [App\Http\Controllers\AdminStampCorrectionController::class, 'showApprove']);
-    Route::post('/stamp_correction_request/approve/{attendance_correct_request_id}', [App\Http\Controllers\AdminStampCorrectionController::class, 'approve']);
+    
+    // --- 勤怠・スタッフ管理 ---
+    Route::get('/admin/attendance/list', [AdminAttendanceController::class, 'list'])->name('admin.attendance.list');
+    Route::get('/admin/staff/list', [AdminStaffController::class, 'list'])->name('admin.staff.list');
+    Route::get('/admin/attendance/staff/{id}', [AdminStaffController::class, 'attendance'])->name('admin.attendance.staff');
+    Route::get('/admin/attendance/staff/{id}/export', [AdminStaffController::class, 'exportCsv'])->name('admin.attendance.export');
 
-    Route::get('/admin/staff/list', [App\Http\Controllers\AdminStaffController::class, 'list']);
-    Route::get('/admin/attendance/staff/{id}', [App\Http\Controllers\AdminStaffController::class, 'attendance']);
-    Route::get('/admin/attendance/staff/{id}/export', [App\Http\Controllers\AdminStaffController::class, 'exportCsv']);
-    Route::get('/admin/attendance/list', [App\Http\Controllers\AdminAttendanceController::class, 'list']);
+    // --- 修正申請の承認処理 ---
+    Route::get('/stamp_correction_request/approve/{attendance_correct_request_id}', [AdminStampCorrectionController::class, 'showApprove'])->name('admin.correction.show');
+    Route::post('/stamp_correction_request/approve/{attendance_correct_request_id}', [AdminStampCorrectionController::class, 'approve'])->name('admin.correction.approve');
 });

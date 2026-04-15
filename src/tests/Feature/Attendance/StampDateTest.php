@@ -19,14 +19,22 @@ class StampDateTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $now = Carbon::now();
-        $expectedDate = $now->isoFormat('YYYY年M月D日(ddd)');
-        $expectedTime = $now->format('H:i');
+        // 現在時刻を固定する（秒の切り替わりによる失敗を防ぐ）
+        $knownDate = Carbon::create(2026, 1, 1, 10, 0, 0);
+        Carbon::setTestNow($knownDate);
+
+        $expectedDate = '2026年1月1日(木)';
+        $expectedTime = '10:00';
 
         $response = $this->get('/attendance');
 
         $response->assertStatus(200);
+
+        // 画面上に指定の形式で表示されているか確認
         $response->assertSee($expectedDate);
         $response->assertSee($expectedTime);
+
+        // テスト終了後に時間を元に戻す
+        Carbon::setTestNow();
     }
 }

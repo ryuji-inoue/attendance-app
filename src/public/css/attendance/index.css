@@ -6,24 +6,25 @@
 }
 .attendance__status {
     display: inline-block;
-    padding: 4px 16px;
+    padding: 6px 20px;
     background-color: #D9D9D9;
     border-radius: 50px;
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 40px;
-    color: #000;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 30px;
+    color: #4A4A4A;
 }
 .attendance__date {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 500;
     margin-bottom: 25px;
 }
 .attendance__time {
     font-size: 110px;
-    font-weight: bold;
+    font-weight: 700;
     margin-bottom: 60px;
     letter-spacing: 4px;
+    line-height: 1;
 }
 .attendance__button-group {
     display: flex;

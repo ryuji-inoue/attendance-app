@@ -19,13 +19,17 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
     ];
 
-    // リレーション: 勤怠データ
+    /**
+     * リレーション：このユーザーが持つ勤怠レコード（複数）を取得
+     */
     public function attendances()
     {
         return $this->hasMany(Attendance::class);
     }
 
-    // リレーション: 修正申請
+    /**
+     * リレーション：このユーザーが提出した修正申請（複数）を取得
+     */
     public function correctionRequests()
     {
         return $this->hasMany(AttendanceCorrectionRequest::class);

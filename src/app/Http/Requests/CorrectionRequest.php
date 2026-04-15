@@ -25,16 +25,16 @@ class CorrectionRequest extends FormRequest
             'clock_in' => ['required'],
             'clock_out' => ['required', 'after:clock_in'],
             'note' => ['required'],
-            'breaks.*.start' => ['nullable'],
-            'breaks.*.end' => ['nullable', 'after:breaks.*.start'],
+            'breaks' => ['nullable', 'array'],
+            'breaks.*.start' => ['nullable', 'date_format:H:i'],
+            'breaks.*.end' => ['nullable', 'date_format:H:i', 'after:breaks.*.start'],
         ];
 
-        // 休憩時間の整合性チェック (出勤・退勤時間との比較)
-        if ($this->clock_in) {
+        // 休憩開始時間が出勤時間より前になっている場合及び退勤時間より後になっている場合
+        if ($this->filled('clock_in')) {
             $rules['breaks.*.start'][] = 'after:' . $this->clock_in;
         }
-
-        if ($this->clock_out) {
+        if ($this->filled('clock_out')) {
             $rules['breaks.*.start'][] = 'before:' . $this->clock_out;
             $rules['breaks.*.end'][] = 'before:' . $this->clock_out;
         }
@@ -54,10 +54,10 @@ class CorrectionRequest extends FormRequest
             'clock_out.required' => '退勤時間を入力してください',
             'clock_out.after' => '出勤時間もしくは退勤時間が不適切な値です',
             'note.required' => '備考を記入してください',
-            'breaks.*.start.after' => '休憩時間が勤務時間外です',
-            'breaks.*.start.before' => '休憩時間が勤務時間外です',
-            'breaks.*.end.after' => '休憩時間が勤務時間外です',
-            'breaks.*.end.before' => '休憩時間が勤務時間外です',
+            'breaks.*.start.after' => '休憩時間が不適切な値です',
+            'breaks.*.start.before' => '休憩時間が不適切な値です',
+            'breaks.*.end.after' => '休憩時間が不適切な値です', 
+            'breaks.*.end.before' => '休憩時間もしくは退勤時間が不適切な値です',
         ];
     }
 }
