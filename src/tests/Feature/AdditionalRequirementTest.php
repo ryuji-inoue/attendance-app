@@ -38,7 +38,6 @@ class AdditionalRequirementTest extends TestCase
     public function test_unverified_user_is_redirected_to_verify_email_screen()
     {
         // email_verified_at を null（未認証）にしてユーザーを作成
-        // ※ Userファクトリに unverified() 状態が定義されている前提です
         $user = User::factory()->unverified()->create(['role' => 'user']);
 
         // ログイン状態で、打刻画面（verifiedミドルウェアで保護されている想定）へアクセス
@@ -84,14 +83,14 @@ class AdditionalRequirementTest extends TestCase
         $user = User::factory()->create(['role' => 'user']);
         $this->actingAs($user)
             ->post('/logout')
-            ->assertRedirect('/login'); // 【修正】Fortifyのデフォルトに合わせて /login に変更
+            ->assertRedirect('/login'); // Fortifyのデフォルトに合わせて /login に
         $this->assertGuest();
 
         // 管理者のログアウト
         $admin = User::factory()->create(['role' => 'admin']);
         $this->actingAs($admin)
             ->post('/logout')
-            ->assertRedirect('/login'); // 【修正】こちらも同様
+            ->assertRedirect('/login');
         $this->assertGuest();
     }
 
@@ -147,7 +146,6 @@ class AdditionalRequirementTest extends TestCase
      */
     public function test_pending_correction_locks_editing()
     {
-        // 【デバッグ用】もしこのテストが失敗した場合、ターミナルに詳細なエラー原因（500エラーの中身）が出力されます。
         $this->withoutExceptionHandling();
 
         $user = User::factory()->create(['role' => 'user']);
